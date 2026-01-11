@@ -1,0 +1,68 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+
+
+def compute_cost(X_b, y, theta):
+    m = len(y)
+    predictions = X_b @ theta
+    cost = (1 / (2 * m)) * np.sum((predictions - y) ** 2)
+    return cost
+
+def normal_equation(X, y):
+    ones = np.ones((X.shape[0], 1))
+    X_b = np.hstack([ones, X])
+    start_time = time.time()
+    theta = np.linalg.inv(X_b.T @ X_b) @ X_b.T @ y
+    elapsed = time.time() - start_time
+    return theta, X_b, elapsed
+
+
+def gradient_descent(X_b, y, alpha=0.01, iterations=1000):
+    m = len(y)
+    theta = np.zeros((X_b.shape[1], 1))
+    cost_history = []
+    start_time = time.time()
+
+    for i in range(iterations):
+        gradients = (1 / m) * (X_b.T @ (X_b @ theta - y))
+        theta -= alpha * gradients
+        cost_history.append(compute_cost(X_b, y, theta))
+
+    elapsed = time.time() - start_time
+    return theta, cost_history, elapsed
+
+X = np.array([
+    [5, 7],
+    [8, 5],
+    [3, 6],
+    [10, 4],
+    [6, 9]
+])
+
+y = np.array([75, 90, 60, 95, 80]).reshape(-1, 1)
+
+# Normal Equation
+theta_ne, X_b, time_ne = normal_equation(X, y)
+cost_ne = compute_cost(X_b, y, theta_ne)
+
+# Gradient Descent
+theta_gd, cost_history, time_gd = gradient_descent(X_b, y, alpha=0.01, iterations=200)
+cost_gd_final = cost_history[-1]
+
+print("Theta (Normal Equation):\n", theta_ne)
+print("Final Cost (Normal Equation):", cost_ne)
+print("Execution Time (Normal Equation): {:.6f} sec".format(time_ne))
+
+print("\nTheta (Gradient Descent):\n", theta_gd)
+print("Final Cost (Gradient Descent):", cost_gd_final)
+print("Execution Time (Gradient Descent): {:.6f} sec".format(time_gd))
+
+
+plt.plot(range(len(cost_history)), cost_history, label="Gradient Descent Cost")
+plt.axhline(y=cost_ne, color='r', linestyle='--', label="Normal Equation Cost")
+plt.xlabel("Iterations")
+plt.ylabel("Cost J(theta)")
+plt.title("Normal Equation vs Gradient Descent Cost")
+plt.legend()
+plt.show()
